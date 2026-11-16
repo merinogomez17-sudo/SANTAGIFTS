@@ -5,6 +5,11 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  {
+    // Cargamos datos de Supabase con funciones async dentro de useEffect;
+    // el estado se actualiza después del await, no de forma síncrona.
+    rules: { "react-hooks/set-state-in-effect": "warn" },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
