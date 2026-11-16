@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { AmigoSecreto } from "@/components/evento/AmigoSecreto";
+import { ListaParticipantes } from "@/components/evento/ListaParticipantes";
 import { MensajesDeMiSanta } from "@/components/evento/MensajesDeMiSanta";
 import { PanelOrganizador } from "@/components/evento/PanelOrganizador";
-import { Avatar, Cargando, Encabezado, Pagina, Tarjeta, Titulo } from "@/components/ui";
+import { Cargando, Encabezado, Pagina, Tarjeta } from "@/components/ui";
 import { useSesion } from "@/components/useSesion";
 import { createClient } from "@/lib/supabase/client";
 import type { Evento, Participante } from "@/lib/tipos";
@@ -25,15 +26,24 @@ function Evento_() {
   const { cargando, usuario, perfil } = useSesion();
   const [evento, setEvento] = useState<Evento | null | undefined>(undefined);
   const [participantes, setParticipantes] = useState<Participante[]>([]);
+  const [yaSortearon, setYaSortearon] = useState<Set<string>>(new Set());
 
   const cargar = useCallback(async () => {
     const supabase = createClient();
-    const [{ data: ev }, { data: ps }] = await Promise.all([
+    const [{ data: ev }, { data: ps }, { data: est }] = await Promise.all([
       supabase.from("eventos").select("*").eq("id", id).maybeSingle<Evento>(),
-      supabase.from("participantes").select("usuario_id, perfil:perfiles(id, nombre, foto_url)").eq("evento_id", id).order("unido_en"),
+      supabase
+        .from("participantes")
+        .select("id, nombre, usuario_id, perfil:perfiles(id, nombre, foto_url)")
+        .eq("evento_id", id)
+        .order("creado_en"),
+      supabase.rpc("estado_sorteo", { p_evento: id }),
     ]);
     setEvento(ev ?? null);
     setParticipantes((ps as unknown as Participante[]) ?? []);
+    setYaSortearon(
+      new Set(((est as { participante_id: string; ya_sorteo: boolean }[] | null) ?? []).filter((x) => x.ya_sorteo).map((x) => x.participante_id)),
+    );
   }, [id]);
 
   useEffect(() => {
@@ -53,7 +63,7 @@ function Evento_() {
     );
 
   const soyOrganizador = evento.organizador_id === usuario.id;
-  const yaSorteado = evento.estado !== "abierto";
+  const soyParticipante = participantes.some((p) => p.usuario_id === usuario.id);
 
   return (
     <>
@@ -73,39 +83,32 @@ function Evento_() {
           {evento.descripcion ? <p className="text-sm text-stone-500">{evento.descripcion}</p> : null}
         </div>
 
-        {yaSorteado ? (
-          <>
-            <AmigoSecreto evento={evento} />
-            <MensajesDeMiSanta eventoId={evento.id} />
-          </>
-        ) : !soyOrganizador ? (
+        {evento.estado === "abierto" ? (
           <Tarjeta className="text-center">
             <div className="text-3xl">⏳</div>
-            <p className="mt-2 font-medium">Esperando el sorteo</p>
-            <p className="mt-1 text-sm text-stone-500">Mientras, completa tu lista de deseos en tu perfil.</p>
-            <Link href="/perfil" className="mt-3 inline-block text-sm font-medium underline underline-offset-2">
-              Ir a mi lista de deseos
-            </Link>
+            <p className="mt-2 font-medium">{soyOrganizador ? "Arma la lista y activa el sorteo" : "Esperando que se active el sorteo"}</p>
+            <p className="mt-1 text-sm text-stone-500">
+              {soyOrganizador
+                ? "Cuando estén todos, activa el sorteo y cada quien sacará su papelito desde su celular."
+                : "Cuando el organizador lo active, aquí podrás sacar tu papelito. Mientras, completa tu lista de deseos."}
+            </p>
+            {!soyOrganizador ? (
+              <Link href="/perfil" className="mt-3 inline-block text-sm font-medium underline underline-offset-2">
+                Ir a mi lista de deseos
+              </Link>
+            ) : null}
           </Tarjeta>
+        ) : soyParticipante ? (
+          <>
+            <AmigoSecreto evento={evento} alSortear={cargar} />
+            <MensajesDeMiSanta eventoId={evento.id} />
+          </>
         ) : null}
 
         {soyOrganizador ? (
-          <PanelOrganizador evento={evento} participantes={participantes} alCambiar={cargar} />
+          <PanelOrganizador evento={evento} participantes={participantes} yaSortearon={yaSortearon} alCambiar={cargar} />
         ) : (
-          <Tarjeta>
-            <Titulo>Participantes · {participantes.length}</Titulo>
-            <ul className="space-y-3">
-              {participantes.map((p) => (
-                <li key={p.usuario_id} className="flex items-center gap-3">
-                  <Avatar nombre={p.perfil?.nombre} foto={p.perfil?.foto_url} tam={36} />
-                  <span className="text-sm">
-                    {p.perfil?.nombre}
-                    {p.usuario_id === evento.organizador_id ? <span className="ml-2 text-xs text-stone-400">organiza</span> : null}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </Tarjeta>
+          <ListaParticipantes evento={evento} participantes={participantes} yaSortearon={yaSortearon} />
         )}
       </Pagina>
     </>

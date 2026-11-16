@@ -38,7 +38,23 @@ export type Evento = {
   sorteado_en: string | null;
 };
 
-export type Participante = { usuario_id: string; perfil: PerfilCorto | null };
+/** Un lugar en el intercambio: lo crea el organizador por nombre y luego alguien lo reclama con su cuenta. */
+export type Participante = {
+  id: string;
+  nombre: string;
+  usuario_id: string | null;
+  perfil: PerfilCorto | null;
+};
+
+export const nombreDe = (p: Pick<Participante, "nombre" | "perfil">) => p.perfil?.nombre || p.nombre;
+
+export type MiAmigo = {
+  asignacion_id: string;
+  participante_id: string;
+  usuario_id: string | null;
+  nombre: string;
+  revelado_en: string;
+};
 
 export type Pregunta = { id: number; texto: string; emoji: string | null };
 export type RespuestaRapida = { id: number; texto: string };
