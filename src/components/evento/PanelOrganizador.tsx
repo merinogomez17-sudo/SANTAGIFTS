@@ -345,13 +345,35 @@ function Sorteo({ evento, total, alCambiar }: { evento: Evento; total: number; a
   }
 
   async function terminar() {
-    if (!confirm("¿Marcar el intercambio como terminado?")) return;
+    if (
+      !confirm(
+        "¿Cerrar el intercambio? Úsalo cuando ya se hayan dado los regalos. Ya no se podrá agregar gente ni sacar papelitos (puedes reabrirlo después).",
+      )
+    )
+      return;
     const { error } = await createClient().rpc("terminar_evento", { p_evento: evento.id });
     if (error) return setError(mensajeError(error));
     alCambiar();
   }
 
-  if (evento.estado === "terminado") return null;
+  async function reabrir() {
+    setError("");
+    const { error } = await createClient().rpc("reabrir_evento", { p_evento: evento.id });
+    if (error) return setError(mensajeError(error));
+    alCambiar();
+  }
+
+  if (evento.estado === "terminado")
+    return (
+      <Tarjeta className="space-y-3">
+        <Titulo>Intercambio cerrado</Titulo>
+        <p className="-mt-2 text-sm text-stone-500">Ya no se pueden sacar papelitos ni agregar gente. Si lo cerraste por error, ábrelo de nuevo; el sorteo se conserva.</p>
+        {error ? <Aviso>{error}</Aviso> : null}
+        <Boton variante="secundario" className="w-full" onClick={reabrir}>
+          Reabrir intercambio
+        </Boton>
+      </Tarjeta>
+    );
 
   return (
     <Tarjeta className="space-y-3">
@@ -377,7 +399,7 @@ function Sorteo({ evento, total, alCambiar }: { evento: Evento; total: number; a
               Rehacer sorteo
             </Boton>
             <Boton variante="secundario" onClick={terminar}>
-              Terminar
+              Cerrar (ya se dieron)
             </Boton>
           </div>
         </>
