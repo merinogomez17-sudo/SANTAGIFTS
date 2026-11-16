@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
+import { CambiarContrasena } from "@/components/CambiarContrasena";
 import { ListaDeseos } from "@/components/ListaDeseos";
 import { AreaTexto, Aviso, Avatar, Boton, Campo, Cargando, Encabezado, Entrada, Pagina, Tarjeta, Titulo } from "@/components/ui";
 import { useSesion } from "@/components/useSesion";
@@ -154,6 +155,13 @@ function EditorPerfil() {
         {!esNuevo ? (
           <>
             <ListaDeseos usuarioId={usuario.id} editable />
+            <Tarjeta>
+              <Titulo>Contraseña</Titulo>
+              <p className="-mt-2 mb-4 text-sm text-stone-500">
+                Ponle contraseña a tu cuenta ({usuario.email}) para entrar sin esperar el correo.
+              </p>
+              <CambiarContrasena />
+            </Tarjeta>
             <Boton variante="fantasma" className="w-full" onClick={salir}>
               Cerrar sesión
             </Boton>
