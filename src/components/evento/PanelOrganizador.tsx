@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { FilaPersona } from "@/components/evento/ListaParticipantes";
 import { Aviso, Avatar, Boton, Entrada, Tarjeta, Titulo } from "@/components/ui";
@@ -81,7 +82,39 @@ export function PanelOrganizador({
 
       <Exclusiones evento={evento} participantes={participantes} />
       <Sorteo evento={evento} total={participantes.length} alCambiar={alCambiar} />
+      <Eliminar evento={evento} />
     </>
+  );
+}
+
+function Eliminar({ evento }: { evento: Evento }) {
+  const router = useRouter();
+  const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState("");
+
+  async function eliminar() {
+    const escrito = prompt(
+      `Esto borra "${evento.nombre}" para todos: participantes, sorteo y mensajes. No se puede deshacer.\n\nEscribe el nombre del intercambio para confirmar:`,
+    );
+    if (escrito === null) return;
+    if (escrito.trim().toLowerCase() !== evento.nombre.trim().toLowerCase()) return setError("El nombre no coincide. No se borró nada.");
+    setError("");
+    setCargando(true);
+    const { error } = await createClient().rpc("eliminar_evento", { p_evento: evento.id });
+    setCargando(false);
+    if (error) return setError(mensajeError(error));
+    router.replace("/eventos");
+  }
+
+  return (
+    <Tarjeta className="space-y-3">
+      <Titulo>Eliminar intercambio</Titulo>
+      <p className="-mt-2 text-sm text-stone-500">Se borra para todos, junto con el sorteo y los mensajes. No se puede deshacer.</p>
+      {error ? <Aviso>{error}</Aviso> : null}
+      <Boton variante="peligro" className="w-full" cargando={cargando} onClick={eliminar}>
+        Eliminar intercambio
+      </Boton>
+    </Tarjeta>
   );
 }
 
