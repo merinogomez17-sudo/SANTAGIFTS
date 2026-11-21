@@ -75,7 +75,17 @@ function Evento_() {
         </Link>
 
         <div className="space-y-2 pb-2">
-          <h1 className="text-2xl font-semibold tracking-tight">{evento.nombre}</h1>
+          <div className="flex items-start justify-between gap-3">
+            <h1 className="text-2xl font-semibold tracking-tight">{evento.nombre}</h1>
+            {soyOrganizador ? (
+              <Link
+                href={`/eventos/${evento.id}/editar`}
+                className="mt-1 shrink-0 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 transition hover:bg-stone-50"
+              >
+                ✏️ Editar
+              </Link>
+            ) : null}
+          </div>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-stone-600">
             <span>📅 {fecha(evento.fecha_evento)}</span>
             {evento.lugar ? <span>📍 {evento.lugar}</span> : null}
