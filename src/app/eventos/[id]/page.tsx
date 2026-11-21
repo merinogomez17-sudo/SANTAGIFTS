@@ -6,6 +6,7 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { AmigoSecreto } from "@/components/evento/AmigoSecreto";
 import { ListaParticipantes } from "@/components/evento/ListaParticipantes";
 import { MensajesDeMiSanta } from "@/components/evento/MensajesDeMiSanta";
+import { ListaDeseos } from "@/components/ListaDeseos";
 import { PanelOrganizador } from "@/components/evento/PanelOrganizador";
 import { Cargando, Encabezado, Pagina, Tarjeta } from "@/components/ui";
 import { useSesion } from "@/components/useSesion";
@@ -92,17 +93,21 @@ function Evento_() {
                 ? "Cuando estén todos, activa el sorteo y cada quien sacará su papelito desde su celular."
                 : "Cuando el organizador lo active, aquí podrás sacar tu papelito. Mientras, completa tu lista de deseos."}
             </p>
-            {!soyOrganizador ? (
-              <Link href="/perfil" className="mt-3 inline-block text-sm font-medium underline underline-offset-2">
-                Ir a mi lista de deseos
-              </Link>
-            ) : null}
           </Tarjeta>
         ) : soyParticipante ? (
           <>
             <AmigoSecreto evento={evento} alSortear={cargar} />
             <MensajesDeMiSanta eventoId={evento.id} />
           </>
+        ) : null}
+
+        {soyParticipante ? (
+          <ListaDeseos
+            usuarioId={usuario.id}
+            editable
+            titulo="Mi lista de deseos"
+            nota="Pega links de Amazon, Mercado Libre, Shein… Quien te sacó la verá (sin que sepas quién es)."
+          />
         ) : null}
 
         {soyOrganizador ? (

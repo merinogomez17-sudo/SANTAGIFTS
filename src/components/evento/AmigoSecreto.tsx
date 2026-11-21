@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ListaDeseos } from "@/components/ListaDeseos";
-import { Aviso, Avatar, Boton, Proximamente, Tarjeta, Titulo } from "@/components/ui";
+import { Aviso, Avatar, Boton, Tarjeta, Titulo } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import type { Evento, MensajeSanta, MiAmigo, Perfil, Pregunta } from "@/lib/tipos";
 import { EMOJIS, hora, mensajeError, presupuesto } from "@/lib/utils";
@@ -103,7 +103,6 @@ export function AmigoSecreto({ evento, alSortear }: { evento: Evento; alSortear?
       ) : null}
 
       {amigo.usuario_id ? <ListaDeseos usuarioId={amigo.usuario_id} titulo={`Lista de deseos de ${nombre.split(" ")[0]}`} /> : null}
-      <Proximamente titulo="Ideas de regalo" texto="Pronto verás sugerencias de Mercado Libre y Amazon dentro del presupuesto." />
       <PreguntarAnonimo asignacionId={amigo.asignacion_id} nombre={nombre.split(" ")[0]} />
     </>
   );

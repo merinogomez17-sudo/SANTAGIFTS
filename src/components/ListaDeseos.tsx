@@ -68,7 +68,17 @@ function BotonTienda({ url }: { url: string }) {
 }
 
 /** Lista de deseos de una persona. Con `editable` se puede agregar y borrar. */
-export function ListaDeseos({ usuarioId, editable, titulo = "Mi lista de deseos" }: { usuarioId: string; editable?: boolean; titulo?: string }) {
+export function ListaDeseos({
+  usuarioId,
+  editable,
+  titulo = "Mi lista de deseos",
+  nota,
+}: {
+  usuarioId: string;
+  editable?: boolean;
+  titulo?: string;
+  nota?: string;
+}) {
   const [deseos, setDeseos] = useState<Deseo[] | null>(null);
   const [descripcion, setDescripcion] = useState("");
   const [link, setLink] = useState("");
@@ -114,6 +124,7 @@ export function ListaDeseos({ usuarioId, editable, titulo = "Mi lista de deseos"
   return (
     <Tarjeta>
       <Titulo>{titulo}</Titulo>
+      {nota ? <p className="-mt-2 mb-4 text-sm text-stone-500">{nota}</p> : null}
       {deseos === null ? (
         <p className="text-sm text-stone-400">Cargando…</p>
       ) : deseos.length === 0 ? (
