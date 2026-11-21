@@ -16,6 +16,57 @@ function linkSeguro(link: string | null) {
   }
 }
 
+/**
+ * Saca el link de lo que pegó la persona. Las apps (Shein, Amazon, Mercado Libre…)
+ * al "Compartir" mandan texto + link; aquí nos quedamos solo con el link.
+ */
+function extraerLink(texto: string) {
+  const t = texto.trim();
+  if (!t) return "";
+  const conProtocolo = t.match(/https?:\/\/[^\s<>"']+/i);
+  if (conProtocolo) return conProtocolo[0];
+  const sinProtocolo = t.match(/(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)+\/[^\s<>"']*/i) ?? t.match(/^(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)+$/i);
+  return sinProtocolo ? `https://${sinProtocolo[0]}` : t;
+}
+
+type Tienda = { nombre: string; clase: string };
+
+const TIENDAS: { dominios: string[]; tienda: Tienda }[] = [
+  { dominios: ["amazon.", "amzn.", "a.co"], tienda: { nombre: "Amazon", clase: "bg-amber-50 text-amber-800 border-amber-200" } },
+  { dominios: ["mercadolibre.", "mercadolivre.", "meli.la"], tienda: { nombre: "Mercado Libre", clase: "bg-yellow-50 text-yellow-800 border-yellow-200" } },
+  { dominios: ["shein."], tienda: { nombre: "Shein", clase: "bg-stone-900 text-white border-stone-900" } },
+  { dominios: ["liverpool."], tienda: { nombre: "Liverpool", clase: "bg-pink-50 text-pink-800 border-pink-200" } },
+  { dominios: ["walmart."], tienda: { nombre: "Walmart", clase: "bg-sky-50 text-sky-800 border-sky-200" } },
+  { dominios: ["coppel."], tienda: { nombre: "Coppel", clase: "bg-yellow-50 text-blue-800 border-yellow-200" } },
+  { dominios: ["temu."], tienda: { nombre: "Temu", clase: "bg-orange-50 text-orange-800 border-orange-200" } },
+  { dominios: ["aliexpress."], tienda: { nombre: "AliExpress", clase: "bg-red-50 text-red-800 border-red-200" } },
+  { dominios: ["sears."], tienda: { nombre: "Sears", clase: "bg-blue-50 text-blue-800 border-blue-200" } },
+  { dominios: ["palaciodehierro."], tienda: { nombre: "El Palacio de Hierro", clase: "bg-stone-100 text-stone-800 border-stone-200" } },
+];
+
+function tiendaDe(url: string): Tienda {
+  const host = new URL(url).hostname.replace(/^www\./, "").toLowerCase();
+  // "amazon." = cualquier país (amazon.com.mx, amazon.com); "a.co" = dominio exacto (o subdominio)
+  const coincide = (d: string) =>
+    d.endsWith(".") ? host.startsWith(d) || host.includes(`.${d}`) : host === d || host.endsWith(`.${d}`);
+  const t = TIENDAS.find(({ dominios }) => dominios.some(coincide));
+  return t?.tienda ?? { nombre: host.split(".").slice(-2, -1)[0] || host, clase: "bg-white text-stone-700 border-stone-200" };
+}
+
+function BotonTienda({ url }: { url: string }) {
+  const t = tiendaDe(url);
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer nofollow"
+      className={`mt-2 inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium transition active:scale-95 ${t.clase}`}
+    >
+      Ver en {t.nombre} <span aria-hidden>↗</span>
+    </a>
+  );
+}
+
 /** Lista de deseos de una persona. Con `editable` se puede agregar y borrar. */
 export function ListaDeseos({ usuarioId, editable, titulo = "Mi lista de deseos" }: { usuarioId: string; editable?: boolean; titulo?: string }) {
   const [deseos, setDeseos] = useState<Deseo[] | null>(null);
@@ -41,8 +92,8 @@ export function ListaDeseos({ usuarioId, editable, titulo = "Mi lista de deseos"
   async function agregar(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    const l = link.trim();
-    if (l && !linkSeguro(l)) return setError("El link debe empezar con https://");
+    const l = extraerLink(link);
+    if (l && !linkSeguro(l)) return setError("No reconocí ese link. Cópialo desde el botón Compartir de la tienda y pégalo aquí.");
     setGuardando(true);
     const { error } = await createClient()
       .from("deseos")
@@ -78,12 +129,8 @@ export function ListaDeseos({ usuarioId, editable, titulo = "Mi lista de deseos"
                   <p className="text-sm text-stone-900">{d.descripcion}</p>
                   <div className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-stone-500">
                     {d.precio_aprox != null ? <span>~{dinero(d.precio_aprox)}</span> : null}
-                    {url ? (
-                      <a href={url} target="_blank" rel="noopener noreferrer" className="truncate text-stone-900 underline underline-offset-2">
-                        Ver producto
-                      </a>
-                    ) : null}
                   </div>
+                  {url ? <BotonTienda url={url} /> : null}
                 </div>
                 {editable ? (
                   <button onClick={() => borrar(d.id)} className="text-xs text-stone-400 hover:text-rose-600" aria-label="Borrar">
@@ -100,9 +147,16 @@ export function ListaDeseos({ usuarioId, editable, titulo = "Mi lista de deseos"
         <form onSubmit={agregar} className="mt-4 space-y-3 border-t border-stone-100 pt-4">
           <Entrada required maxLength={300} placeholder="¿Qué te gustaría?" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} />
           <div className="grid grid-cols-[1fr_110px] gap-2">
-            <Entrada type="url" inputMode="url" placeholder="Link (opcional)" value={link} onChange={(e) => setLink(e.target.value)} />
+            <Entrada inputMode="url" autoCapitalize="none" autoCorrect="off" placeholder="Pega el link (opcional)" value={link} onChange={(e) => setLink(e.target.value)} />
             <Entrada type="number" inputMode="numeric" min={0} placeholder="$ aprox" value={precio} onChange={(e) => setPrecio(e.target.value)} />
           </div>
+          {linkSeguro(extraerLink(link)) ? (
+            <p className="-mt-1 text-xs text-stone-500">
+              Link de <span className="font-medium text-stone-800">{tiendaDe(extraerLink(link)).nombre}</span> ✓
+            </p>
+          ) : (
+            <p className="-mt-1 text-xs text-stone-400">Amazon, Mercado Libre, Shein, Liverpool… Usa el botón Compartir de la app y pégalo aquí.</p>
+          )}
           {error ? <Aviso>{error}</Aviso> : null}
           <Boton variante="secundario" className="w-full" cargando={guardando}>
             Agregar a mi lista
