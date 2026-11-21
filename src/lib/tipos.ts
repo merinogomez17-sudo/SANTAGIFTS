@@ -17,6 +17,7 @@ export type Deseo = {
   descripcion: string;
   link: string | null;
   precio_aprox: number | null;
+  imagen_url: string | null;
   prioridad: number;
   creado_en: string;
 };

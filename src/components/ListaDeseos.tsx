@@ -53,6 +53,20 @@ function tiendaDe(url: string): Tienda {
   return t?.tienda ?? { nombre: host.split(".").slice(-2, -1)[0] || host, clase: "bg-white text-stone-700 border-stone-200" };
 }
 
+type Producto = { titulo: string | null; imagen: string | null; precio: number | null; moneda: string | null; link?: string };
+
+/** Solo mostramos fotos servidas por Amazon, para que nadie pueda meter imágenes de otros sitios. */
+function imagenSegura(src: string | null) {
+  if (!src) return null;
+  try {
+    const u = new URL(src);
+    const ok = u.protocol === "https:" && /(^|\.)(media-amazon\.com|ssl-images-amazon\.com|images-amazon\.com)$/.test(u.hostname);
+    return ok ? u.href : null;
+  } catch {
+    return null;
+  }
+}
+
 function BotonTienda({ url }: { url: string }) {
   const t = tiendaDe(url);
   return (
@@ -102,12 +116,31 @@ export function ListaDeseos({
   async function agregar(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    const l = extraerLink(link);
+    let l = extraerLink(link);
     if (l && !linkSeguro(l)) return setError("No reconocí ese link. Cópialo desde el botón Compartir de la tienda y pégalo aquí.");
+    if (!l && !descripcion.trim()) return setError("Escribe qué te gustaría o pega un link.");
     setGuardando(true);
+
+    // Si es de Amazon, pedimos título, foto y precio al servidor (Canopy API).
+    let prod: Producto | null = null;
+    if (l && tiendaDe(l).nombre === "Amazon") {
+      prod = await fetch("/api/producto", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: l }) })
+        .then((r) => (r.ok ? (r.json() as Promise<Producto>) : null))
+        .catch(() => null);
+      if (prod?.link) l = prod.link;
+    }
+
+    const texto = descripcion.trim() || prod?.titulo || `Algo de ${tiendaDe(l).nombre}`;
+    const precioAuto = !precio && prod?.precio != null && (!prod.moneda || prod.moneda === "MXN") ? Math.round(prod.precio) : null;
     const { error } = await createClient()
       .from("deseos")
-      .insert({ usuario_id: usuarioId, descripcion: descripcion.trim(), link: l || null, precio_aprox: precio ? Number(precio) : null });
+      .insert({
+        usuario_id: usuarioId,
+        descripcion: texto.slice(0, 300),
+        link: l || null,
+        precio_aprox: precio ? Number(precio) : precioAuto,
+        imagen_url: imagenSegura(prod?.imagen ?? null),
+      });
     setGuardando(false);
     if (error) return setError(mensajeError(error));
     setDescripcion("");
@@ -133,11 +166,17 @@ export function ListaDeseos({
         <ul className="divide-y divide-stone-100">
           {deseos.map((d) => {
             const url = linkSeguro(d.link);
+            const img = imagenSegura(d.imagen_url);
             return (
               <li key={d.id} className="flex items-start gap-3 py-3 first:pt-0">
-                <span className="mt-0.5 text-lg">🎁</span>
+                {img ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={img} alt="" loading="lazy" referrerPolicy="no-referrer" className="size-16 shrink-0 rounded-xl border border-stone-100 bg-white object-contain p-1" />
+                ) : (
+                  <span className="mt-0.5 text-lg">🎁</span>
+                )}
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm text-stone-900">{d.descripcion}</p>
+                  <p className="line-clamp-3 text-sm text-stone-900">{d.descripcion}</p>
                   <div className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-stone-500">
                     {d.precio_aprox != null ? <span>~{dinero(d.precio_aprox)}</span> : null}
                   </div>
@@ -156,7 +195,7 @@ export function ListaDeseos({
 
       {editable ? (
         <form onSubmit={agregar} className="mt-4 space-y-3 border-t border-stone-100 pt-4">
-          <Entrada required maxLength={300} placeholder="¿Qué te gustaría?" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} />
+          <Entrada maxLength={300} placeholder="¿Qué te gustaría? (con link de Amazon se llena solo)" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} />
           <div className="grid grid-cols-[1fr_110px] gap-2">
             <Entrada inputMode="url" autoCapitalize="none" autoCorrect="off" placeholder="Pega el link (opcional)" value={link} onChange={(e) => setLink(e.target.value)} />
             <Entrada type="number" inputMode="numeric" min={0} placeholder="$ aprox" value={precio} onChange={(e) => setPrecio(e.target.value)} />
@@ -170,7 +209,7 @@ export function ListaDeseos({
           )}
           {error ? <Aviso>{error}</Aviso> : null}
           <Boton variante="secundario" className="w-full" cargando={guardando}>
-            Agregar a mi lista
+            {guardando && tiendaDe(extraerLink(link) || "https://x.invalid").nombre === "Amazon" ? "Buscando producto…" : "Agregar a mi lista"}
           </Boton>
           <Proximamente titulo="Tienda de regalos" texto="Pronto podrás buscar regalos de Mercado Libre y Amazon dentro de tu presupuesto." />
         </form>
