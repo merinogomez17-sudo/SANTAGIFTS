@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Aviso, Boton, Entrada, Proximamente, Tarjeta, Titulo } from "@/components/ui";
+import { Aviso, Boton, Desplegable, Entrada, Proximamente, Tarjeta, Titulo } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import type { Deseo } from "@/lib/tipos";
 import { dinero, mensajeError } from "@/lib/utils";
@@ -87,11 +87,14 @@ export function ListaDeseos({
   editable,
   titulo = "Mi lista de deseos",
   nota,
+  desplegable,
 }: {
   usuarioId: string;
   editable?: boolean;
   titulo?: string;
   nota?: string;
+  /** Muestra la lista dentro de una tarjeta que se abre y se cierra. */
+  desplegable?: boolean;
 }) {
   const [deseos, setDeseos] = useState<Deseo[] | null>(null);
   const [descripcion, setDescripcion] = useState("");
@@ -154,10 +157,9 @@ export function ListaDeseos({
     cargar();
   }
 
-  return (
-    <Tarjeta>
-      <Titulo>{titulo}</Titulo>
-      {nota ? <p className="-mt-2 mb-4 text-sm text-stone-500">{nota}</p> : null}
+  const contenido = (
+    <>
+      {nota ? <p className={`${desplegable ? "" : "-mt-2"} mb-4 text-sm text-stone-500`}>{nota}</p> : null}
       {deseos === null ? (
         <p className="text-sm text-stone-400">Cargando…</p>
       ) : deseos.length === 0 ? (
@@ -214,6 +216,20 @@ export function ListaDeseos({
           <Proximamente titulo="Tienda de regalos" texto="Pronto podrás buscar regalos de Mercado Libre y Amazon dentro de tu presupuesto." />
         </form>
       ) : null}
+    </>
+  );
+
+  if (desplegable)
+    return (
+      <Desplegable titulo={titulo} resumen={deseos ? (deseos.length === 1 ? "1 deseo" : `${deseos.length} deseos`) : null}>
+        {contenido}
+      </Desplegable>
+    );
+
+  return (
+    <Tarjeta>
+      <Titulo>{titulo}</Titulo>
+      {contenido}
     </Tarjeta>
   );
 }

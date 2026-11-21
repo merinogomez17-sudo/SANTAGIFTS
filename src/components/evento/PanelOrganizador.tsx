@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { FilaPersona } from "@/components/evento/ListaParticipantes";
-import { Aviso, Avatar, Boton, Entrada, Tarjeta, Titulo } from "@/components/ui";
+import { Aviso, Avatar, Boton, Desplegable, Entrada, Tarjeta, Titulo } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import type { Evento, Participante, PerfilCorto } from "@/lib/tipos";
 import { nombreDe } from "@/lib/tipos";
@@ -107,14 +107,15 @@ function Eliminar({ evento }: { evento: Evento }) {
   }
 
   return (
-    <Tarjeta className="space-y-3">
-      <Titulo>Eliminar intercambio</Titulo>
-      <p className="-mt-2 text-sm text-stone-500">Se borra para todos, junto con el sorteo y los mensajes. No se puede deshacer.</p>
-      {error ? <Aviso>{error}</Aviso> : null}
-      <Boton variante="peligro" className="w-full" cargando={cargando} onClick={eliminar}>
-        Eliminar intercambio
-      </Boton>
-    </Tarjeta>
+    <Desplegable titulo="Eliminar intercambio">
+      <div className="space-y-3">
+        <p className="text-sm text-stone-500">Se borra para todos, junto con el sorteo y los mensajes. No se puede deshacer.</p>
+        {error ? <Aviso>{error}</Aviso> : null}
+        <Boton variante="peligro" className="w-full" cargando={cargando} onClick={eliminar}>
+          Eliminar intercambio
+        </Boton>
+      </div>
+    </Desplegable>
   );
 }
 
@@ -163,10 +164,9 @@ function AgregarPersona({
   const yaEsta = resultado && participantes.some((p) => p.usuario_id === resultado.id);
 
   return (
-    <Tarjeta>
-      <Titulo>Agregar personas</Titulo>
+    <Desplegable titulo="Agregar personas">
       {evento.estado === "sorteado" ? (
-        <p className="-mt-2 mb-3 text-sm text-stone-500">El sorteo ya está activo: la nueva persona entra al círculo sin cambiarle nada a quien ya sorteó.</p>
+        <p className="mb-3 text-sm text-stone-500">El sorteo ya está activo: la nueva persona entra al círculo sin cambiarle nada a quien ya sorteó.</p>
       ) : null}
       <div className="mb-3 grid grid-cols-2 rounded-xl bg-stone-100 p-1 text-sm font-medium">
         {(["nombre", "correo"] as const).map((m) => (
@@ -231,7 +231,7 @@ function AgregarPersona({
         </>
       )}
       {error ? <div className="mt-3"><Aviso>{error}</Aviso></div> : null}
-    </Tarjeta>
+    </Desplegable>
   );
 }
 
@@ -242,9 +242,8 @@ function Invitar({ evento, pendientes }: { evento: Evento; pendientes: number })
   const texto = `¡Ya está el intercambio "${evento.nombre}"! 🎁 Entra aquí, elige tu nombre y saca tu papelito: ${link}`;
 
   return (
-    <Tarjeta>
-      <Titulo>Comparte el link</Titulo>
-      <p className="-mt-2 mb-3 text-sm text-stone-500">
+    <Desplegable titulo="Comparte el link" resumen={pendientes > 0 ? `Faltan ${pendientes}` : "Todos entraron"}>
+      <p className="mb-3 text-sm text-stone-500">
         Cada quien entra, elige su nombre de la lista y saca su papelito.
         {pendientes > 0 ? ` Faltan ${pendientes} por entrar.` : ""}
       </p>
@@ -269,7 +268,7 @@ function Invitar({ evento, pendientes }: { evento: Evento; pendientes: number })
           WhatsApp
         </a>
       </div>
-    </Tarjeta>
+    </Desplegable>
   );
 }
 
@@ -322,9 +321,8 @@ function Exclusiones({ evento, participantes }: { evento: Evento; participantes:
   );
 
   return (
-    <Tarjeta>
-      <Titulo>No se pueden tocar entre sí</Titulo>
-      <p className="-mt-2 mb-3 text-sm text-stone-500">Opcional. Por ejemplo, parejas o hermanos que viven juntos.</p>
+    <Desplegable titulo="No se pueden tocar entre sí" resumen={lista.length ? `${lista.length} ${lista.length === 1 ? "pareja" : "parejas"}` : "Opcional"}>
+      <p className="mb-3 text-sm text-stone-500">Opcional. Por ejemplo, parejas o hermanos que viven juntos.</p>
       {lista.length > 0 ? (
         <ul className="mb-3 space-y-2">
           {lista.map((x) => (
@@ -356,7 +354,7 @@ function Exclusiones({ evento, participantes }: { evento: Evento; participantes:
           Agregar pareja
         </Boton>
       </form>
-    </Tarjeta>
+    </Desplegable>
   );
 }
 

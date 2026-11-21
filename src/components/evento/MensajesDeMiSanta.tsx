@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Burbuja } from "@/components/evento/AmigoSecreto";
-import { Aviso, Boton, Entrada, Tarjeta, Titulo } from "@/components/ui";
+import { Aviso, Boton, Desplegable, Entrada } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import type { MensajeRecibido, RespuestaRapida } from "@/lib/tipos";
 import { EMOJIS, mensajeError } from "@/lib/utils";
@@ -51,8 +51,10 @@ export function MensajesDeMiSanta({ eventoId }: { eventoId: string }) {
   const hayPreguntas = mensajes.some((m) => m.autor === "santa");
 
   return (
-    <Tarjeta>
-      <Titulo>Tu amigo secreto 🤫</Titulo>
+    <Desplegable
+      titulo="Preguntas de quien te sacó 🤫"
+      resumen={hayPreguntas ? `${mensajes.length} ${mensajes.length === 1 ? "mensaje" : "mensajes"}` : "Sin preguntas"}
+    >
       {!hayPreguntas ? (
         <p className="text-sm text-stone-500">Aquí verás lo que te pregunte tu amigo secreto. Tú no sabrás quién es.</p>
       ) : (
@@ -106,6 +108,6 @@ export function MensajesDeMiSanta({ eventoId }: { eventoId: string }) {
           </form>
         </>
       )}
-    </Tarjeta>
+    </Desplegable>
   );
 }

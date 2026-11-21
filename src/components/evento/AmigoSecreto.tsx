@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ListaDeseos } from "@/components/ListaDeseos";
-import { Aviso, Avatar, Boton, Tarjeta, Titulo } from "@/components/ui";
+import { Aviso, Avatar, Boton, Desplegable, Tarjeta } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import type { Evento, MensajeSanta, MiAmigo, Perfil, Pregunta } from "@/lib/tipos";
 import { EMOJIS, hora, mensajeError, presupuesto } from "@/lib/utils";
@@ -89,8 +89,7 @@ export function AmigoSecreto({ evento, alSortear }: { evento: Evento; alSortear?
       ) : null}
 
       {datos.length > 0 ? (
-        <Tarjeta>
-          <Titulo>Lo que sabemos</Titulo>
+        <Desplegable titulo="Tallas y gustos" resumen={`${datos.length} ${datos.length === 1 ? "dato" : "datos"}`}>
           <dl className="space-y-2.5">
             {datos.map(([k, v]) => (
               <div key={k} className="grid grid-cols-[110px_1fr] gap-2 text-sm">
@@ -99,10 +98,10 @@ export function AmigoSecreto({ evento, alSortear }: { evento: Evento; alSortear?
               </div>
             ))}
           </dl>
-        </Tarjeta>
+        </Desplegable>
       ) : null}
 
-      {amigo.usuario_id ? <ListaDeseos usuarioId={amigo.usuario_id} titulo={`Lista de deseos de ${nombre.split(" ")[0]}`} /> : null}
+      {amigo.usuario_id ? <ListaDeseos desplegable usuarioId={amigo.usuario_id} titulo={`Lista de deseos de ${nombre.split(" ")[0]}`} /> : null}
       <PreguntarAnonimo asignacionId={amigo.asignacion_id} nombre={nombre.split(" ")[0]} />
     </>
   );
@@ -144,9 +143,11 @@ function PreguntarAnonimo({ asignacionId, nombre }: { asignacionId: string; nomb
   }
 
   return (
-    <Tarjeta>
-      <Titulo>Pregúntale en secreto</Titulo>
-      <p className="-mt-2 mb-4 text-sm text-stone-500">{nombre} no sabrá que eres tú.</p>
+    <Desplegable
+      titulo="Pregúntale en secreto"
+      resumen={mensajes.length ? `${mensajes.length} ${mensajes.length === 1 ? "mensaje" : "mensajes"}` : null}
+    >
+      <p className="mb-4 text-sm text-stone-500">{nombre} no sabrá que eres tú.</p>
 
       {mensajes.length > 0 ? (
         <ul className="mb-4 space-y-2">
@@ -185,7 +186,7 @@ function PreguntarAnonimo({ asignacionId, nombre }: { asignacionId: string; nomb
           </button>
         ))}
       </div>
-    </Tarjeta>
+    </Desplegable>
   );
 }
 

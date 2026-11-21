@@ -8,7 +8,7 @@ import { ListaParticipantes } from "@/components/evento/ListaParticipantes";
 import { MensajesDeMiSanta } from "@/components/evento/MensajesDeMiSanta";
 import { ListaDeseos } from "@/components/ListaDeseos";
 import { PanelOrganizador } from "@/components/evento/PanelOrganizador";
-import { Cargando, Encabezado, Pagina, Tarjeta } from "@/components/ui";
+import { Cargando, Encabezado, Pagina, Pestanas, Tarjeta } from "@/components/ui";
 import { useSesion } from "@/components/useSesion";
 import { createClient } from "@/lib/supabase/client";
 import type { Evento, Participante } from "@/lib/tipos";
@@ -28,6 +28,7 @@ function Evento_() {
   const [evento, setEvento] = useState<Evento | null | undefined>(undefined);
   const [participantes, setParticipantes] = useState<Participante[]>([]);
   const [yaSortearon, setYaSortearon] = useState<Set<string>>(new Set());
+  const [pestana, setPestana] = useState<"amigo" | "yo" | "grupo">("amigo");
 
   const cargar = useCallback(async () => {
     const supabase = createClient();
@@ -94,37 +95,53 @@ function Evento_() {
           {evento.descripcion ? <p className="text-sm text-stone-500">{evento.descripcion}</p> : null}
         </div>
 
-        {evento.estado === "abierto" ? (
-          <Tarjeta className="text-center">
-            <div className="text-3xl">⏳</div>
-            <p className="mt-2 font-medium">{soyOrganizador ? "Arma la lista y activa el sorteo" : "Esperando que se active el sorteo"}</p>
-            <p className="mt-1 text-sm text-stone-500">
-              {soyOrganizador
-                ? "Cuando estén todos, activa el sorteo y cada quien sacará su papelito desde su celular."
-                : "Cuando el organizador lo active, aquí podrás sacar tu papelito. Mientras, completa tu lista de deseos."}
-            </p>
-          </Tarjeta>
-        ) : soyParticipante ? (
-          <>
-            <AmigoSecreto evento={evento} alSortear={cargar} />
-            <MensajesDeMiSanta eventoId={evento.id} />
-          </>
-        ) : null}
-
         {soyParticipante ? (
-          <ListaDeseos
-            usuarioId={usuario.id}
-            editable
-            titulo="Mi lista de deseos"
-            nota="Pega links de Amazon, Mercado Libre, Shein… Quien te sacó la verá (sin que sepas quién es)."
+          <Pestanas
+            valor={pestana}
+            alCambiar={setPestana}
+            opciones={[
+              { id: "amigo", texto: "🎁 Le regalo a" },
+              { id: "yo", texto: "🙋 Yo" },
+              { id: "grupo", texto: soyOrganizador ? "⚙️ Organizar" : "👥 Grupo" },
+            ]}
           />
         ) : null}
 
-        {soyOrganizador ? (
-          <PanelOrganizador evento={evento} participantes={participantes} yaSortearon={yaSortearon} alCambiar={cargar} />
-        ) : (
-          <ListaParticipantes evento={evento} participantes={participantes} yaSortearon={yaSortearon} />
-        )}
+        {soyParticipante && pestana === "amigo" ? (
+          evento.estado === "abierto" ? (
+            <Tarjeta className="text-center">
+              <div className="text-3xl">⏳</div>
+              <p className="mt-2 font-medium">{soyOrganizador ? "Arma la lista y activa el sorteo" : "Esperando que se active el sorteo"}</p>
+              <p className="mt-1 text-sm text-stone-500">
+                {soyOrganizador
+                  ? "Cuando estén todos, ve a ⚙️ Organizar y activa el sorteo. Cada quien sacará su papelito desde su celular."
+                  : "Cuando el organizador lo active, aquí podrás sacar tu papelito. Mientras, llena tu lista de deseos en 🙋 Yo."}
+              </p>
+            </Tarjeta>
+          ) : (
+            <AmigoSecreto evento={evento} alSortear={cargar} />
+          )
+        ) : null}
+
+        {soyParticipante && pestana === "yo" ? (
+          <>
+            <ListaDeseos
+              usuarioId={usuario.id}
+              editable
+              titulo="Mi lista de deseos"
+              nota="Pega links de Amazon, Mercado Libre, Shein… Quien te sacó la verá (sin que sepas quién es)."
+            />
+            {evento.estado !== "abierto" ? <MensajesDeMiSanta eventoId={evento.id} /> : null}
+          </>
+        ) : null}
+
+        {!soyParticipante || pestana === "grupo" ? (
+          soyOrganizador ? (
+            <PanelOrganizador evento={evento} participantes={participantes} yaSortearon={yaSortearon} alCambiar={cargar} />
+          ) : (
+            <ListaParticipantes evento={evento} participantes={participantes} yaSortearon={yaSortearon} />
+          )
+        ) : null}
       </Pagina>
     </>
   );
