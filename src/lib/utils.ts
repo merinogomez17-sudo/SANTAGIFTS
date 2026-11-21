@@ -9,7 +9,8 @@ export function dinero(n: number | null | undefined, moneda = "MXN") {
 
 export function presupuesto(e: Pick<Evento, "presupuesto_min" | "presupuesto_max" | "moneda">) {
   const { presupuesto_min: min, presupuesto_max: max, moneda } = e;
-  if (min != null && max != null) return `${dinero(min, moneda)} – ${dinero(max, moneda)}`;
+  if (min != null && max != null)
+    return Number(min) === Number(max) ? dinero(max, moneda) : `${dinero(min, moneda)} – ${dinero(max, moneda)}`;
   if (max != null) return `Hasta ${dinero(max, moneda)}`;
   if (min != null) return `Desde ${dinero(min, moneda)}`;
   return "Sin presupuesto definido";
