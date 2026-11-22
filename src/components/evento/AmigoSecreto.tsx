@@ -17,6 +17,7 @@ export function AmigoSecreto({ evento, alSortear }: { evento: Evento; alSortear?
   const [giro, setGiro] = useState(0);
   const [recienRevelado, setRecienRevelado] = useState(false);
   const [error, setError] = useState("");
+  const [cambiado, setCambiado] = useState(false);
 
   const mostrar = useCallback(async (a: MiAmigo | null) => {
     if (a?.usuario_id) {
@@ -30,6 +31,9 @@ export function AmigoSecreto({ evento, alSortear }: { evento: Evento; alSortear?
     createClient()
       .rpc("mi_amigo_secreto", { p_evento: evento.id })
       .then(({ data }) => mostrar(((data as MiAmigo[] | null) ?? [])[0] ?? null));
+    createClient()
+      .rpc("me_cambiaron_papelito", { p_evento: evento.id })
+      .then(({ data }) => setCambiado(data === true));
   }, [evento.id, evento.sorteado_en, mostrar]);
 
   async function sacarPapelito() {
@@ -44,6 +48,7 @@ export function AmigoSecreto({ evento, alSortear }: { evento: Evento; alSortear?
     setGirando(false);
     if (error) return setError(mensajeError(error));
     setRecienRevelado(true);
+    setCambiado(false);
     await mostrar(((data as MiAmigo[] | null) ?? [])[0] ?? null);
     alSortear?.();
   }
@@ -56,6 +61,11 @@ export function AmigoSecreto({ evento, alSortear }: { evento: Evento; alSortear?
         <div className={`text-6xl transition ${girando ? "scale-110" : ""}`}>{girando ? GIROS[giro % GIROS.length] : "🎁"}</div>
         <p className="mt-4 text-lg font-semibold">{girando ? "Revolviendo papelitos…" : "¡Ya puedes sacar tu papelito!"}</p>
         <p className="mt-1 text-sm text-stone-500">Solo tú vas a ver a quién le regalas.</p>
+        {cambiado && !girando ? (
+          <div className="mt-4 text-left">
+            <Aviso tipo="info">Se sumó alguien al intercambio y te tocó a ti volver a sacar tu papelito. El que tenías ya no cuenta.</Aviso>
+          </div>
+        ) : null}
         {error ? <div className="mt-4"><Aviso>{error}</Aviso></div> : null}
         <Boton className="mt-6 h-12 w-full" cargando={girando} onClick={sacarPapelito}>
           🎲 Sacar mi papelito

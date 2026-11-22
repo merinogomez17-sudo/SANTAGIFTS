@@ -166,7 +166,7 @@ function AgregarPersona({
   return (
     <Desplegable titulo="Agregar personas">
       {evento.estado === "sorteado" ? (
-        <p className="mb-3 text-sm text-stone-500">El sorteo ya está activo: la nueva persona entra al círculo sin cambiarle nada a quien ya sorteó.</p>
+        <p className="mb-3 text-sm text-stone-500">El sorteo ya está activo: la nueva persona entra al círculo y solo a una persona (elegida al azar) le toca volver a sacar su papelito. Los demás no cambian.</p>
       ) : null}
       <div className="mb-3 grid grid-cols-2 rounded-xl bg-stone-100 p-1 text-sm font-medium">
         {(["nombre", "correo"] as const).map((m) => (
