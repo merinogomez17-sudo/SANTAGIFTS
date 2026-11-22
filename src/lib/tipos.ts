@@ -14,6 +14,7 @@ export type PerfilCorto = Pick<Perfil, "id" | "nombre" | "foto_url">;
 export type Deseo = {
   id: string;
   usuario_id: string;
+  evento_id: string;
   descripcion: string;
   link: string | null;
   precio_aprox: number | null;

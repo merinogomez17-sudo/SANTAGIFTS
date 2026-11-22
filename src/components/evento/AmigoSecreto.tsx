@@ -101,7 +101,7 @@ export function AmigoSecreto({ evento, alSortear }: { evento: Evento; alSortear?
         </Desplegable>
       ) : null}
 
-      {amigo.usuario_id ? <ListaDeseos desplegable usuarioId={amigo.usuario_id} titulo={`Lista de deseos de ${nombre.split(" ")[0]}`} /> : null}
+      {amigo.usuario_id ? <ListaDeseos desplegable usuarioId={amigo.usuario_id} eventoId={evento.id} titulo={`Lista de deseos de ${nombre.split(" ")[0]}`} /> : null}
       <PreguntarAnonimo asignacionId={amigo.asignacion_id} nombre={nombre.split(" ")[0]} />
     </>
   );

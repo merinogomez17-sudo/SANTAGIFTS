@@ -3,7 +3,6 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { CambiarContrasena } from "@/components/CambiarContrasena";
-import { ListaDeseos } from "@/components/ListaDeseos";
 import { AreaTexto, Aviso, Avatar, Boton, Campo, Cargando, Encabezado, Entrada, Pagina, Tarjeta, Titulo } from "@/components/ui";
 import { useSesion } from "@/components/useSesion";
 import { createClient } from "@/lib/supabase/client";
@@ -154,7 +153,12 @@ function EditorPerfil() {
 
         {!esNuevo ? (
           <>
-            <ListaDeseos usuarioId={usuario.id} editable />
+            <Tarjeta>
+              <Titulo>Lista de deseos</Titulo>
+              <p className="-mt-2 text-sm text-stone-500">
+                Cada intercambio tiene su propia lista. Ábrelo y ve a la pestaña <b>🙋 Yo</b> para agregar tus ideas.
+              </p>
+            </Tarjeta>
             <Tarjeta>
               <Titulo>Contraseña</Titulo>
               <p className="-mt-2 mb-4 text-sm text-stone-500">

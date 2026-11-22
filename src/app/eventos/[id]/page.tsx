@@ -127,9 +127,10 @@ function Evento_() {
           <>
             <ListaDeseos
               usuarioId={usuario.id}
+              eventoId={evento.id}
               editable
               titulo="Mi lista de deseos"
-              nota="Pega links de Amazon, Mercado Libre, Shein… Quien te sacó la verá (sin que sepas quién es)."
+              nota="Solo para este intercambio. Pega links de Amazon, Mercado Libre, Shein… Quien te sacó la verá (sin que sepas quién es)."
             />
             {evento.estado !== "abierto" ? <MensajesDeMiSanta eventoId={evento.id} /> : null}
           </>

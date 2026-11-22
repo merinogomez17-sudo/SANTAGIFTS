@@ -81,15 +81,18 @@ function BotonTienda({ url }: { url: string }) {
   );
 }
 
-/** Lista de deseos de una persona. Con `editable` se puede agregar y borrar. */
+/** Lista de deseos de una persona para un intercambio. Con `editable` se puede agregar y borrar. */
 export function ListaDeseos({
   usuarioId,
+  eventoId,
   editable,
   titulo = "Mi lista de deseos",
   nota,
   desplegable,
 }: {
   usuarioId: string;
+  /** Cada intercambio tiene su propia lista. */
+  eventoId: string;
   editable?: boolean;
   titulo?: string;
   nota?: string;
@@ -108,9 +111,10 @@ export function ListaDeseos({
       .from("deseos")
       .select("*")
       .eq("usuario_id", usuarioId)
+      .eq("evento_id", eventoId)
       .order("creado_en", { ascending: true });
     setDeseos((data as Deseo[]) ?? []);
-  }, [usuarioId]);
+  }, [usuarioId, eventoId]);
 
   useEffect(() => {
     cargar();
@@ -139,6 +143,7 @@ export function ListaDeseos({
       .from("deseos")
       .insert({
         usuario_id: usuarioId,
+        evento_id: eventoId,
         descripcion: texto.slice(0, 300),
         link: l || null,
         precio_aprox: precio ? Number(precio) : precioAuto,
