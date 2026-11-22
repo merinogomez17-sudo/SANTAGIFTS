@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { InstalarApp } from "@/components/InstalarApp";
 import { Cargando, Encabezado, Pagina } from "@/components/ui";
 import { useSesion } from "@/components/useSesion";
 import { createClient } from "@/lib/supabase/client";
@@ -39,6 +40,7 @@ export default function EventosPage() {
     <>
       <Encabezado foto={perfil?.foto_url} nombre={perfil?.nombre} />
       <Pagina>
+        <InstalarApp />
         <div className="flex items-end justify-between gap-3 pb-2">
           <div>
             <p className="text-sm text-stone-500">Hola, {perfil?.nombre?.split(" ")[0]} 👋</p>
