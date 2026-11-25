@@ -48,6 +48,7 @@ export function PanelOrganizador({
 
       <Tarjeta>
         <Titulo>Participantes · {participantes.length}</Titulo>
+        <p className="-mt-2 mb-4 text-sm text-stone-500">Toca a alguien para ver su lista de deseos.</p>
         {error ? <div className="mb-3"><Aviso>{error}</Aviso></div> : null}
         <ul className="space-y-3">
           {participantes.map((p) => (

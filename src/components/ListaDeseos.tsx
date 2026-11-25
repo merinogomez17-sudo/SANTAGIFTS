@@ -89,6 +89,7 @@ export function ListaDeseos({
   titulo = "Mi lista de deseos",
   nota,
   desplegable,
+  sinMarco,
 }: {
   usuarioId: string;
   /** Cada intercambio tiene su propia lista. */
@@ -98,6 +99,8 @@ export function ListaDeseos({
   nota?: string;
   /** Muestra la lista dentro de una tarjeta que se abre y se cierra. */
   desplegable?: boolean;
+  /** Solo la lista, sin tarjeta ni título (para ponerla dentro de otra cosa). */
+  sinMarco?: boolean;
 }) {
   const [deseos, setDeseos] = useState<Deseo[] | null>(null);
   const [descripcion, setDescripcion] = useState("");
@@ -223,6 +226,8 @@ export function ListaDeseos({
       ) : null}
     </>
   );
+
+  if (sinMarco) return contenido;
 
   if (desplegable)
     return (

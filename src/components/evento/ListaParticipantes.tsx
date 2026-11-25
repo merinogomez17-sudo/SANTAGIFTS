@@ -1,6 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { ListaDeseos } from "@/components/ListaDeseos";
 import { Avatar, Tarjeta, Titulo } from "@/components/ui";
 import type { Evento, Participante } from "@/lib/tipos";
 import { nombreDe } from "@/lib/tipos";
@@ -31,8 +32,11 @@ export function FilaPersona({
   yaSorteo: boolean;
   acciones?: ReactNode;
 }) {
-  return (
-    <li className="flex items-center gap-3">
+  const [abierta, setAbierta] = useState(false);
+  const puedeAbrir = !!p.usuario_id;
+
+  const datos = (
+    <>
       <Avatar nombre={nombreDe(p)} foto={p.perfil?.foto_url} tam={36} />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm">
@@ -42,7 +46,35 @@ export function FilaPersona({
         {p.perfil?.nombre && p.perfil.nombre !== p.nombre ? <p className="truncate text-xs text-stone-400">Lugar: {p.nombre}</p> : null}
       </div>
       <EstadoPersona p={p} evento={evento} yaSorteo={yaSorteo} />
-      {acciones}
+    </>
+  );
+
+  return (
+    <li>
+      <div className="flex items-center gap-3">
+        {puedeAbrir ? (
+          <button
+            type="button"
+            onClick={() => setAbierta((a) => !a)}
+            aria-expanded={abierta}
+            className="flex min-w-0 flex-1 items-center gap-3 text-left"
+          >
+            {datos}
+            <span className={`text-stone-400 transition ${abierta ? "rotate-180" : ""}`} aria-hidden>
+              ▾
+            </span>
+          </button>
+        ) : (
+          <div className="flex min-w-0 flex-1 items-center gap-3">{datos}</div>
+        )}
+        {acciones}
+      </div>
+      {abierta && p.usuario_id ? (
+        <div className="mt-3 rounded-xl bg-stone-50 p-3">
+          <p className="mb-2 text-xs font-medium text-stone-500">Lista de deseos</p>
+          <ListaDeseos sinMarco usuarioId={p.usuario_id} eventoId={evento.id} />
+        </div>
+      ) : null}
     </li>
   );
 }
@@ -59,6 +91,7 @@ export function ListaParticipantes({
   return (
     <Tarjeta>
       <Titulo>Participantes · {participantes.length}</Titulo>
+      <p className="-mt-2 mb-4 text-sm text-stone-500">Toca a alguien para ver su lista de deseos.</p>
       <ul className="space-y-3">
         {participantes.map((p) => (
           <FilaPersona key={p.id} p={p} evento={evento} yaSorteo={yaSortearon.has(p.id)} />
