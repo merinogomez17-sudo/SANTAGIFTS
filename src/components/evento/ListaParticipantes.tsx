@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { ListaDeseos } from "@/components/ListaDeseos";
-import { Avatar, Tarjeta, Titulo } from "@/components/ui";
+import { Avatar, FotoGrande, Tarjeta, Titulo } from "@/components/ui";
 import type { Evento, Participante } from "@/lib/tipos";
 import { nombreDe } from "@/lib/tipos";
 
@@ -33,11 +33,12 @@ export function FilaPersona({
   acciones?: ReactNode;
 }) {
   const [abierta, setAbierta] = useState(false);
+  const [verFoto, setVerFoto] = useState(false);
   const puedeAbrir = !!p.usuario_id;
+  const foto = p.perfil?.foto_url;
 
   const datos = (
     <>
-      <Avatar nombre={nombreDe(p)} foto={p.perfil?.foto_url} tam={36} />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm">
           {nombreDe(p)}
@@ -52,6 +53,13 @@ export function FilaPersona({
   return (
     <li>
       <div className="flex items-center gap-3">
+        {foto ? (
+          <button type="button" onClick={() => setVerFoto(true)} aria-label={`Ver foto de ${nombreDe(p)}`} className="shrink-0 rounded-full transition active:scale-95">
+            <Avatar nombre={nombreDe(p)} foto={foto} tam={36} />
+          </button>
+        ) : (
+          <Avatar nombre={nombreDe(p)} tam={36} />
+        )}
         {puedeAbrir ? (
           <button
             type="button"
@@ -69,6 +77,7 @@ export function FilaPersona({
         )}
         {acciones}
       </div>
+      {verFoto && foto ? <FotoGrande foto={foto} nombre={nombreDe(p)} alCerrar={() => setVerFoto(false)} /> : null}
       {abierta && p.usuario_id ? (
         <div className="mt-3 rounded-xl bg-stone-50 p-3">
           <p className="mb-2 text-xs font-medium text-stone-500">Lista de deseos</p>

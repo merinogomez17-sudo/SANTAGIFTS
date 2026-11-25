@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from "react";
+import { useEffect, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from "react";
 
 type Variante = "primario" | "secundario" | "fantasma" | "peligro";
 
@@ -148,6 +148,37 @@ export function Avatar({ nombre, foto, tam = 40 }: { nombre?: string | null; fot
     >
       {inicial}
     </span>
+  );
+}
+
+/** Foto en pantalla completa. Se cierra tocando fuera, con ✕ o con Esc. */
+export function FotoGrande({ foto, nombre, alCerrar }: { foto: string; nombre?: string | null; alCerrar: () => void }) {
+  useEffect(() => {
+    const tecla = (e: KeyboardEvent) => e.key === "Escape" && alCerrar();
+    const antes = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", tecla);
+    return () => {
+      document.body.style.overflow = antes;
+      window.removeEventListener("keydown", tecla);
+    };
+  }, [alCerrar]);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={nombre ? `Foto de ${nombre}` : "Foto"}
+      onClick={alCerrar}
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/85 p-4 animate-[aparecer_.2s_ease-out]"
+    >
+      <button onClick={alCerrar} aria-label="Cerrar" className="absolute right-4 top-4 flex size-10 items-center justify-center rounded-full bg-white/10 text-xl text-white hover:bg-white/20">
+        ✕
+      </button>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={foto} alt={nombre ?? ""} className="max-h-[75vh] max-w-full rounded-2xl object-contain shadow-2xl" />
+      {nombre ? <p className="mt-4 text-lg font-semibold text-white">{nombre}</p> : null}
+    </div>
   );
 }
 
